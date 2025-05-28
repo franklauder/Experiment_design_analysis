@@ -1,0 +1,131 @@
+---
+title: "Experiment Design Analysis"
+author: "Frank Laudert"
+date: "2025-05-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Data Review
+
+We’ll first examine the energy design b structure
+
+```{python}
+
+
+energy_design_b.info()
+
+```
+
+
+
+```{python}
+
+energy_design_b.head()
+
+
+```
+
+
+
+```{python}
+
+
+energy_design_b.Fuel_Source.value_counts()
+
+
+```
+
+
+
+```{python}
+
+
+
+energy_design_b.Geographical_Region.value_counts()
+
+
+```
+
+
+```{python}
+
+
+energy_design_b.groupby(['Geographical_Region', 'Fuel_Source']).count()
+
+
+```
+
+
+# Exploratory Data Anapysis
+
+```{python}
+
+
+mean=energy_design_b.CO2_Emissions.mean()
+median=energy_design_b.CO2_Emissions.median()
+
+
+
+```
+
+
+## Sharpio-Wilk Test for Normality
+
+
+
+```{python}
+
+
+from scipy.stats import shapiro
+import scipy.stats as stats
+
+
+```
+
+
+Null Hypothesis: The distribution of CO2 Emissions is normally distributed
+
+Alternative Hypothesis: The distribution of CO2 Emissions is not normally distributed.
+
+Significance level (alpha): .05
+
+
+```{python}
+
+
+
+
+alpha=0.05
+stat,p=shapiro(energy_design_b['CO2_Emissions'])
+
+
+```
+
+
+
+## CO2 Emissions by Fuel Source
+
+
+```{python}
+
+
+
+
+
+```
+
+
+
+```{python}
+
+
+
+
+
+```
+
