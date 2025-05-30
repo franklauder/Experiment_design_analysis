@@ -129,3 +129,163 @@ stat,p=shapiro(energy_design_b['CO2_Emissions'])
 
 ```
 
+
+### Skew and Multimodality
+
+
+
+Our visual observations of CO2 Emissions by fuel source indicated possible differences in skew and multiple peaks. We’ll confirm this by applying statistical methods to calculate magnitude of skew and multimodality (multipe peaks) strength.
+
+```{python}
+
+
+
+from scipy.stats import skew
+from scipy.stats import gaussian_kde
+from scipy.signal import find_peaks
+
+
+
+
+
+```
+
+
+First, we’ll quantify skew direction and magnitude of the Fuel Source group.
+
+
+```{python}
+
+
+fuel_sources=energy_design_b['Fuel_Source'].unique()
+skewness_results={}
+
+for fuel in fuel_sources:
+  data=energy_design_b[energy_design_b['Fuel_Source'] == fuel]['CO2_Emissions']
+  skewness_results[fuel] = skew(data)
+
+
+
+```
+
+
+
+Skew magnitude: Negative magnitude would indicate a left skew, and positive magnitude indicates right skew.
+
+Skew Magnitude
+
+    0 to 0.5: Slight skew
+
+    0.5 to 1: Moderate skew
+
+    Greater than 1: Strong skew
+
+
+
+
+
+
+Next we’ll check if there are multiple peaks using multimodality test.
+
+
+```{python}
+
+
+def test_multimodality(data, smoothing=1.0):
+    """Estimate number of modes using KDE and find_peaks."""
+    kde = gaussian_kde(data, bw_method=smoothing / np.std(data, ddof=1))
+    x_grid = np.linspace(min(data), max(data), 1000)
+    kde_values = kde.evaluate(x_grid)
+    
+    # Find peaks in KDE curve
+    peaks, _ = find_peaks(kde_values)
+    num_peaks = len(peaks)
+    
+    return num_peaks, x_grid, kde_values, peaks  
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+modality_results = {}
+plot_data = {}  # Store for visualization
+
+for fuel in fuel_sources:
+    data = energy_design_b[energy_design_b['Fuel_Source'] == fuel]['CO2_Emissions']
+    num_peaks, x_grid, kde_values, peaks = test_multimodality(data)
+    modality_results[fuel] = num_peaks
+    plot_data[fuel] = (x_grid, kde_values, peaks)
+
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+NaturalGas_modal_results=modality_results['Natural_Gas']
+Biofuel_modal_results=modality_results['Biofuel']
+Coal_modal_results=modality_results['Coal']
+
+**Multimodality results for Fuel Source**
+Natural Gas: 6
+Biofuel: 11
+Coal: 7
+
+
+
+
+
+
+```
+
+
+
+The plot below helps visualize the number of peaks for each Fuel Source.
+
+
+
+
+```{python}
+
+
+# Plot KDEs with peaks marked
+plt.figure(figsize=(10, 6))
+
+colors = {'Natural_Gas': 'skyblue', 'Biofuel': 'orange', 'Coal': 'green'}
+
+for fuel in fuel_sources:
+    x_grid, kde_values, peaks = plot_data[fuel]
+    plt.plot(x_grid, kde_values, label=fuel, color=colors[fuel])
+    plt.scatter(x_grid[peaks], kde_values[peaks], color=colors[fuel], edgecolor='k', zorder=5, label=f"{fuel} Peaks")
+
+plt.title('KDE Curves with Detected Peaks for CO2 Emissions')
+plt.xlabel('CO2 Emissions')
+plt.ylabel('Density')
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+
+```
+
+
+
+
